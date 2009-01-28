@@ -7,7 +7,7 @@
  */
 
 function administerusersbyrole_perm() {
-  $roles = db_query('SELECT name FROM {role} WHERE rid > 1 ORDER BY name');
+  $roles = db_query('SELECT name FROM {role} WHERE rid > 2 ORDER BY name');
   $perms = array();
   $perms[] = 'create users';
   while ($role=db_fetch_array($roles)) {
@@ -56,11 +56,19 @@ function administerusersbyrole_menu($may_cache) {
 
 function _administerusersbyrole_can_edit_user($account) {
   global $user;
-  if ($account->uid === $user->uid) {
+  if ($account->uid == $user->uid) {
     return TRUE;
   }
 
-  foreach ($account->roles as $role) {
+  // allow only uid1 to edit uid1
+  if ($account->uid == 1) {
+    return FALSE;
+  }
+
+  foreach ($account->roles as $rid => $role) {
+    if ($rid === DRUPAL_AUTHENTICATED_RID) {
+      continue;
+    }
     if (!user_access('edit users with role '. $role)) {
       return FALSE;
     }
@@ -69,7 +77,14 @@ function _administerusersbyrole_can_edit_user($account) {
 }
 
 function _administerusersbyrole_can_delete_user($account) {
-  foreach ($account->roles as $role) {
+  if ($account->uid == 1) {
+    return FALSE;
+  }
+
+  foreach ($account->roles as $rid => $role) {
+    if ($rid === DRUPAL_AUTHENTICATED_RID) {
+      continue;
+    }
     if (!user_access('delete users with role '. $role)) {
       return FALSE;
     }
