@@ -1,3 +1,2 @@
-; $Id$
 name = Administer Users by Role
 description = "Allows users with 'administer users' permission and a role (specified in 'Access control') to edit/delete other users with a specified role.  Also provides control over user creation."
