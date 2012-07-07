@@ -147,6 +147,9 @@ function administerusersbyrole_form_user_multiple_delete_confirm_alter(&$form, &
  * Implements hook_user().
  */
 function administerusersbyrole_user($op, &$edit, &$account, $category = NULL) {
+  if (defined('MAINTENANCE_MODE') && MAINTENANCE_MODE == 'install') {
+    return;
+  }
   if ($op === 'update' && $category === 'account') {
     if (!_administerusersbyrole_can_edit_user($account)) {
       if (isset($edit['status'])) {
