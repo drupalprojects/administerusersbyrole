@@ -1,0 +1,8 @@
+create users:
+  title: 'Create new users'
+edit users with no custom roles:
+  title: 'Edit users with no custom roles'
+cancel users with no custom roles:
+  title: 'Cancel users with no custom roles'
+permission_callbacks:
+  - Drupal\administerusersbyrole\AdministerusersbyrolePermissions::permissions

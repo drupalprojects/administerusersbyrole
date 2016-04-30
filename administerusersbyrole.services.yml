@@ -1,0 +1,20 @@
+services:
+  access_check.administerusersbyrole_create_users:
+    class: Drupal\administerusersbyrole\Access\CreateUsersAccess
+    tags:
+      - { name: access_check }
+
+  access_check.administerusersbyrole_edit_users:
+    class: Drupal\administerusersbyrole\Access\EditUsersAccess
+    tags:
+      - { name: access_check }
+
+  access_check.administerusersbyrole_cancel_users:
+    class: Drupal\administerusersbyrole\Access\CancelUsersAccess
+    tags:
+      - { name: access_check }
+
+  access_check.administerusersbyrole_users_list:
+    class: Drupal\administerusersbyrole\Access\UsersListAccess
+    tags:
+      - { name: access_check }
