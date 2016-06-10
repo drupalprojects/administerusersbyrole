@@ -5,6 +5,8 @@ use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\User\UserInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldItemList;
 
 /**
  * Generates a permission string for a given a role name.
@@ -24,14 +26,19 @@ function _administerusersbyrole_build_perm_string($role_id, $op = 'edit') {
  *
  * @param \Drupal\Core\Session\AccountInterface $account: The account trying to access the entity.
  */
-function administerusersbyrole_user_access(UserInterface $user, $op, AccountInterface $account) {
+function administerusersbyrole_user_access(UserInterface $user, $operation, AccountInterface $account) {
   // Never allow uid 0 (anonymous) or 1 (master admin).
   if ($user->id() <= 1) {
     return AccessResult::neutral();
   }
 
+  // Grant access to view blocked users if we can update them.
+  if ($user->isBlocked() && ($operation == 'view')) {
+    return administerusersbyrole_user_access($user, 'update', $account);
+  }
+
   $convert = array('delete' => 'cancel', 'update' => 'edit');
-  if (!isset($convert[$op])) {
+  if (!isset($convert[$operation])) {
     return AccessResult::neutral();
   }
 
@@ -42,12 +49,82 @@ function administerusersbyrole_user_access(UserInterface $user, $op, AccountInte
       continue;
     }
 
-    if (!$account->hasPermission(_administerusersbyrole_build_perm_string($rid, $convert[$op]))) {
+    if (!$account->hasPermission(_administerusersbyrole_build_perm_string($rid, $convert[$operation]))) {
       return AccessResult::neutral();
     }
   }
 
-  return AccessResult::allowed()->cachePerPermissions();
+  return AccessResult::allowed()->cachePerPermissions()->addCacheableDependency($user);
+}
+
+/**
+ * Implements hook_entity_field_access().
+ */
+function administerusersbyrole_entity_field_access($operation, FieldDefinitionInterface $field_definition, AccountInterface $account, FieldItemList $items = NULL) {
+  if ($field_definition->getTargetEntityTypeId() != 'user') {
+    return AccessResult::neutral();
+  }
+
+  if (is_null($items)) {
+    // No field item list is passed.  This can be used to mean whether to hide/show the whole column in views.
+    // Hence allow status field if 'access users overview'.
+    if ($field_definition->getName() == 'status') {
+      return AccessResult::allowedIfHasPermission($account, 'access users overview');
+    }
+    return AccessResult::neutral();
+  }
+
+  $user = $items->getEntity();
+  $account_access = administerusersbyrole_user_access($user, 'update', $account);
+
+  if ($account_access->isAllowed()) {
+    switch ($field_definition->getName()) {
+      case 'name':
+      case 'status':
+        return $account_access;
+    }
+  }
+
+  return AccessResult::neutral();
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Tedioiusly the user module uses hard-coded permission names.
+ * Add 'admin-only' fields back in depending on our permissions.
+ */
+function administerusersbyrole_form_user_register_form_alter(&$form, &$form_state) {
+  $user = $form_state->getFormObject()->getEntity();
+  $account = Drupal::currentUser();
+
+  if ($account->hasPermission('create users')) {
+    $user->activate();
+    $form['account']['mail']['#required'] = FALSE;
+    $form['account']['status']['#default_value'] = $user->get('status')->value;
+    $form['account']['status']['#access'] = TRUE;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Tedioiusly the user module uses hard-coded permission names.
+ * Add 'admin-only' fields back in depending on our permissions.
+ */
+function administerusersbyrole_form_user_form_alter(&$form, &$form_state) {
+  $user = $form_state->getFormObject()->getEntity();
+  $account = Drupal::currentUser();
+
+  if (administerusersbyrole_user_access($user, 'update', $account)->isAllowed()) {
+    $form['account']['mail']['#required'] = FALSE;
+    $form['account']['name']['#access'] = TRUE;
+    $form['account']['status']['#access'] = TRUE;
+  }
+
+  if (administerusersbyrole_user_access($user, 'delete', $account)->isAllowed()) {
+    $form['actions']['delete']['#access'] = TRUE;
+  }
 }
 
 /**
