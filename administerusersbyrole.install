@@ -1,13 +1,1 @@
 <?php
-
-
-use Drupal\Core\Url;
-
-/**
- * Implements hook_install().
- */
-function administerusersbyrole_install() {
-  drupal_set_message(t("Administer Users by Role installed. Get started administrating users roles and permissions !link",
-    array( '!link' => \Drupal::l(t('Administer > People'),  Url::fromRoute('user.admin_account')))
-  ));
-}

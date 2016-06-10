@@ -7,11 +7,11 @@
 
 namespace Drupal\administerusersbyrole;
 
-use Drupal\Component\Utility\String;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Session\AccountInterface;
 
 /**
  * Provides dynamic permissions of the administerusersbyrole module.
@@ -50,33 +50,28 @@ class AdministerusersbyrolePermissions implements ContainerInjectionInterface {
    * @return array
    */
   public function permissions() {
+    $roles = user_roles(TRUE);
+    $perms = [];
 
-    $roles = user_roles();
-
-
-    // Exclude the admin role.  Once you can edit an admin, you can set their password, log in and do anything,
-    // which defeats the point of using this module.
-    $admin_rid = 'administrator';
-    $permissions = array();
-
-    foreach ($roles as $role) {
-      $rid = $role->get('id');
-
-      if ($rid == $admin_rid) {
+    foreach ($roles as $rid => $role) {
+      if ($role->isAdmin()) {
+        // Exclude the admin role.  Once you can edit an admin, you can set their password, log in and do anything,
+        // which defeats the point of using this module.
         continue;
       }
 
-      foreach (array('Edit', 'Cancel') as $op) {
-        if(!($rid == DRUPAL_AUTHENTICATED_RID or $rid == DRUPAL_ANONYMOUS_RID)) {
-          $permission_string = lcfirst(_administerusersbyrole_build_perm_string($rid, $op));
-          $role_label = $role->get('label');
-          $permission_title = "$op users with role $role_label";
-          $permissions[$permission_string] = array('title' => $permission_title);
+      foreach (array('edit', 'cancel') as $op) {
+        $perm_string = _administerusersbyrole_build_perm_string($rid, $op);
+        if ($rid == AccountInterface::AUTHENTICATED_ROLE) {
+          $perm_title = $this->t(ucfirst("$op users with no custom roles"));
         }
+        else {
+          $perm_title = $this->t(ucfirst("$op users with role @label"), ['@label' => $role->label()]);
+        }
+        $perms[$perm_string] = array('title' => $perm_title);
       }
     }
 
-    return $permissions;
+    return $perms;
   }
-
 }

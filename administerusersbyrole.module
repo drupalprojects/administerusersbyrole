@@ -2,12 +2,52 @@
 
 use Drupal\Core\Url;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\User\UserInterface;
+
 /**
  * Generates a permission string for a given a role name.
  */
 function _administerusersbyrole_build_perm_string($role_id, $op = 'edit') {
   $perm = "$op users with role $role_id";
   return $perm;
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_access() for entity type "user".
+ *
+ * @param \Drupal\User\UserInterface $user
+ *   The user object to check access for.
+ *
+ * @param string $operation: The operation that is to be performed on $entity.
+ *
+ * @param \Drupal\Core\Session\AccountInterface $account: The account trying to access the entity.
+ */
+function administerusersbyrole_user_access(UserInterface $user, $op, AccountInterface $account) {
+  // Never allow uid 0 (anonymous) or 1 (master admin).
+  if ($user->id() <= 1) {
+    return AccessResult::neutral();
+  }
+
+  $convert = array('delete' => 'cancel', 'update' => 'edit');
+  if (!isset($convert[$op])) {
+    return AccessResult::neutral();
+  }
+
+  $roles = $user->getRoles();
+  foreach ($roles as $rid) {
+    // If there is only AUTHENTICATED_ROLE, then we must test for it, otherwise skip it.
+    if (($rid == AccountInterface::AUTHENTICATED_ROLE) && (count($roles) > 1)) {
+      continue;
+    }
+
+    if (!$account->hasPermission(_administerusersbyrole_build_perm_string($rid, $convert[$op]))) {
+      return AccessResult::neutral();
+    }
+  }
+
+  return AccessResult::allowed()->cachePerPermissions();
 }
 
 /**
@@ -40,7 +80,7 @@ function administerusersbyrole_help($route_name, RouteMatchInterface $route_matc
 
       $output .= "<br><strong>The permission for cancel work exactly the same as those for edit.</strong>";
 
-      return t($output, array('!pa_url' => Url::fromRoute('user.admin_account')));
+      return t($output, array('!pa_url' => Url::fromRoute('entity.user.collection')));
       break;
   }
 }
