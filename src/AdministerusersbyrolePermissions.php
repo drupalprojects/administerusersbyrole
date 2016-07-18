@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\administerusersbyrole\AdministerusersbyrolePermissions.
- */
-
 namespace Drupal\administerusersbyrole;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;

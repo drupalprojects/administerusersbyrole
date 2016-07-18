@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\administerusersbyrole\Tests\AdministerusersbyroleTestCaseTest.
- */
-
 namespace Drupal\administerusersbyrole\Tests;
 
 use Drupal\simpletest\WebTestBase;
