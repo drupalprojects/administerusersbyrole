@@ -7,6 +7,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\User\UserInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemList;
+use Drupal\Core\Database\Query\AlterableInterface;
 
 /**
  * Generates a permission string for a given a role name.
@@ -65,27 +66,53 @@ function administerusersbyrole_entity_field_access($operation, FieldDefinitionIn
     return AccessResult::neutral();
   }
 
-  if (is_null($items)) {
-    // No field item list is passed.  This can be used to mean whether to hide/show the whole column in views.
-    // Hence allow status field if 'access users overview'.
-    if ($field_definition->getName() == 'status') {
-      return AccessResult::allowedIfHasPermission($account, 'access users overview');
-    }
+  $fields = array('name', 'status');
+  if ($operation == 'view') {
+    array_push($fields, 'roles', 'access');
+  }
+
+  if (!in_array($field_definition->getName(), $fields)) {
     return AccessResult::neutral();
   }
 
-  $user = $items->getEntity();
-  $account_access = administerusersbyrole_user_access($user, 'update', $account);
-
-  if ($account_access->isAllowed()) {
-    switch ($field_definition->getName()) {
-      case 'name':
-      case 'status':
-        return $account_access;
-    }
+  if (is_null($items)) {
+    // No field item list is passed.  This can be used to control whether to hide/show the whole column in views.
+    // Hence allow if 'access users overview'.
+    return AccessResult::allowedIfHasPermission($account, 'access users overview');
   }
+  else {
+    return administerusersbyrole_user_access($items->getEntity(), 'update', $account);
+  }
+}
 
-  return AccessResult::neutral();
+/**
+ * Implements hook_query_TAG_alter().
+ */
+function administerusersbyrole_query_administerusersbyrole_edit_access_alter(AlterableInterface $query) {
+  $user = \Drupal::currentUser();
+  // The tag administerusersbyrole_edit_access is used to indicate that we should filter out users where there isn't edit access.
+  if (!$user->hasPermission('administer users')) {
+    // Exclude the root user.
+    $query->condition('users_field_data.uid', 1, '<>');
+
+    $roles = user_roles(TRUE);
+    foreach ($roles as $rid => $role) {
+      if (!$user->hasPermission(_administerusersbyrole_build_perm_string($rid, 'edit'))) {
+        $exclude[$rid] = $rid;
+      }
+    }
+
+    if (isset($exclude[DRUPAL_AUTHENTICATED_RID])) {
+      // No permission unless there is a role.
+      $query->join('user__roles', 'ur', 'ur.entity_id=users_field_data.uid');
+      unset($exclude[DRUPAL_AUTHENTICATED_RID]);
+    }
+
+    // Do an "anti-join" on the excluded roles - add a left join and then check the results set is null.
+    // NB We don't have to check that $exclude might be empty, because it always contains the admin role.
+    $query->leftjoin('user__roles', 'ur', 'ur.entity_id=users_field_data.uid AND ur.roles_target_id IN (:exclude[])', array(':exclude[]' => $exclude));
+    $query->isNull('ur.entity_id');
+  }
 }
 
 /**
