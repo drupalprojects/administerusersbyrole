@@ -131,8 +131,8 @@ function administerusersbyrole_query_administerusersbyrole_edit_access_alter(Alt
 
     // Do an "anti-join" on the excluded roles - add a left join and then check the results set is null.
     // NB We don't have to check that $exclude might be empty, because it always contains the admin role.
-    $query->leftjoin('user__roles', 'ur', 'ur.entity_id=users_field_data.uid AND ur.roles_target_id IN (:exclude[])', array(':exclude[]' => $exclude));
-    $query->isNull('ur.entity_id');
+    $urAlias = $query->leftjoin('user__roles', 'ur', 'ur.entity_id=users_field_data.uid AND ur.roles_target_id IN (:exclude[])', array(':exclude[]' => $exclude));
+    $query->isNull("$urAlias.entity_id");
   }
 }
 
