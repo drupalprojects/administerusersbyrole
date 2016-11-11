@@ -5,6 +5,7 @@ use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\User\UserInterface;
+use Drupal\User\RoleInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Database\Query\AlterableInterface;
@@ -15,6 +16,26 @@ use Drupal\Core\Database\Query\AlterableInterface;
 function _administerusersbyrole_build_perm_string($role_id, $op = 'edit') {
   $perm = "$op users with role $role_id";
   return $perm;
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_access() for entity type "user_role".
+ *
+ * @param \Drupal\User\RoleInterface $user
+ *   The role object to check access for.
+ *
+ * @param string $operation: The operation that is to be performed on $entity.
+ *
+ * @param \Drupal\Core\Session\AccountInterface $account: The account trying to access the entity.
+ */
+function administerusersbyrole_user_role_access(RoleInterface $entity, $operation, AccountInterface $account) {
+  // Allow users without the permission "administer permissions" to view the
+  // role names in the /admin/people view.
+  if ($operation == 'view') {
+    return AccessResult::allowedIfHasPermission($account, 'access users overview');
+  }
+
+  return AccessResult::neutral();
 }
 
 /**
