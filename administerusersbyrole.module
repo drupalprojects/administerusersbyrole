@@ -139,7 +139,7 @@ function administerusersbyrole_query_administerusersbyrole_edit_access_alter(Alt
 /**
  * Implements hook_form_FORM_ID_alter().
  *
- * Tedioiusly the user module uses hard-coded permission names.
+ * Tediously the user module uses hard-coded permission names.
  * Add 'admin-only' fields back in depending on our permissions.
  */
 function administerusersbyrole_form_user_register_form_alter(&$form, &$form_state) {
@@ -157,7 +157,7 @@ function administerusersbyrole_form_user_register_form_alter(&$form, &$form_stat
 /**
  * Implements hook_form_FORM_ID_alter().
  *
- * Tedioiusly the user module uses hard-coded permission names.
+ * Tediously the user module uses hard-coded permission names.
  * Add 'admin-only' fields back in depending on our permissions.
  */
 function administerusersbyrole_form_user_form_alter(&$form, &$form_state) {
