@@ -47,6 +47,7 @@ class AdministerusersbyrolePermissions implements ContainerInjectionInterface {
   public function permissions() {
     $roles = user_roles(TRUE);
     $perms = [];
+    $ops = array('edit' => t('Edit'), 'cancel' => t('Cancel'));
 
     foreach ($roles as $rid => $role) {
       if ($role->isAdmin()) {
@@ -55,13 +56,18 @@ class AdministerusersbyrolePermissions implements ContainerInjectionInterface {
         continue;
       }
 
-      foreach (array('edit', 'cancel') as $op) {
+      foreach ($ops as $op => $operation) {
         $perm_string = _administerusersbyrole_build_perm_string($rid, $op);
         if ($rid == AccountInterface::AUTHENTICATED_ROLE) {
-          $perm_title = $this->t(ucfirst("$op users with no custom roles"));
+          $perm_title = $this->t("@operation users with no custom roles", array(
+            '@operation' => $operation,
+          ));
         }
         else {
-          $perm_title = $this->t(ucfirst("$op users with role @label"), ['@label' => $role->label()]);
+          $perm_title = $this->t("@operation users with role %role", array(
+            '@operation' => $operation,
+            '%role' => $role->label(),
+          ));
         }
         $perms[$perm_string] = array('title' => $perm_title);
       }
