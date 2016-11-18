@@ -151,6 +151,7 @@ function administerusersbyrole_form_user_register_form_alter(&$form, &$form_stat
     $form['account']['mail']['#required'] = FALSE;
     $form['account']['status']['#default_value'] = $user->get('status')->value;
     $form['account']['status']['#access'] = TRUE;
+    $form['administer_users']['#value'] = TRUE;
   }
 }
 
