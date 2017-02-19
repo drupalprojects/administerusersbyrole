@@ -146,12 +146,23 @@ function administerusersbyrole_form_user_register_form_alter(&$form, &$form_stat
   $user = $form_state->getFormObject()->getEntity();
   $account = Drupal::currentUser();
 
-  if ($account->hasPermission('create users')) {
-    $user->activate();
-    $form['account']['mail']['#required'] = FALSE;
-    $form['account']['status']['#default_value'] = $user->get('status')->value;
-    $form['account']['status']['#access'] = TRUE;
+  if (!$account->hasPermission('administer users') && $account->hasPermission('create users')) {
+    // Corrections for RegisterForm::form.
     $form['administer_users']['#value'] = TRUE;
+    unset($form['#attributes']['data-user-info-from-browser']);
+    $user->activate();
+
+    // Corrections for AccountForm::form.
+    // TODO Password field is not in the normal order
+    $form['account']['pass'] = array(
+      '#type' => 'password_confirm',
+      '#size' => 25,
+      '#description' => t('Provide a password for the new account in both fields.'),
+      '#required' => TRUE,
+    );
+    $form['account']['pass']['#attributes']['autocomplete'] = 'off';
+    $form['account']['notify']['#access'] = TRUE;
+    _administerusersbyrole_account_form_alter($form, $user, $account);
   }
 }
 
@@ -165,15 +176,57 @@ function administerusersbyrole_form_user_form_alter(&$form, &$form_state) {
   $user = $form_state->getFormObject()->getEntity();
   $account = Drupal::currentUser();
 
-  if (administerusersbyrole_user_access($user, 'update', $account)->isAllowed()) {
-    $form['account']['mail']['#required'] = FALSE;
-    $form['account']['name']['#access'] = TRUE;
-    $form['account']['status']['#access'] = TRUE;
-  }
+  if (!$account->hasPermission('administer users')) {
+    if (administerusersbyrole_user_access($user, 'update', $account)->isAllowed()) {
+      _administerusersbyrole_account_form_alter($form, $user, $account);
+    }
 
-  if (administerusersbyrole_user_access($user, 'delete', $account)->isAllowed()) {
-    $form['actions']['delete']['#access'] = TRUE;
+    if (administerusersbyrole_user_access($user, 'delete', $account)->isAllowed()) {
+      // Correction for ProfileForm::actions.
+      $form['actions']['delete']['#access'] = TRUE;
+    }
   }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Tediously the user module uses hard-coded permission names.
+ * Add 'admin-only' fields back in depending on our permissions.
+ */
+function administerusersbyrole_form_user_cancel_form_alter(&$form, &$form_state) {
+  $user = $form_state->getFormObject()->getEntity();
+  $account = Drupal::currentUser();
+
+  if (!$account->hasPermission('administer users') && administerusersbyrole_user_access($user, 'delete', $account)->isAllowed()) {
+    // Corrections for UserCancelForm::buildForm.
+    $form['user_cancel_method']['#access'] = TRUE;
+    if ($user->id() != $account->id()) {
+      $form['user_cancel_confirm']['#default_value'] = FALSE;
+      $form['user_cancel_confirm']['#access'] = TRUE;
+      $form['user_cancel_notify']['#access'] = $form['user_cancel_notify']['#default_value'];
+      $form['user_cancel_notify']['#default_value'] = FALSE;
+    }
+    $form['access']['#value'] = TRUE;
+
+    // Correction for UserCancelForm::getDescription.
+    $form['description']['#markup'] = t('Select the method to cancel the account above.') . ' ' . t('This action cannot be undone.');
+
+    // Correction for user_cancel_methods.
+    $form['user_cancel_method']['user_cancel_delete']['#access'] = TRUE;
+  }
+}
+
+/**
+ * Corrections for AccountForm::form, which is the shared parent of
+ * RegisterForm::form and ProfileForm::form.
+ */
+function _administerusersbyrole_account_form_alter(&$form, $user, $account) {
+  $form['account']['mail']['#required'] = $user->getEmail();
+  $form['account']['name']['#access'] = TRUE;
+  $form['account']['status']['#default_value'] = $user->get('status')->value;
+  $form['account']['status']['#access'] = TRUE;
+  $form['language']['#access'] = TRUE;
 }
 
 /**
