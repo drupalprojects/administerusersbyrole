@@ -1,0 +1,4 @@
+name: 'Administer Users by Role Hack'
+description: "Workaround for problems on Drupal core user forms.  The plan is to discard this module once core has been fixed."
+core: 8.x
+type: module
