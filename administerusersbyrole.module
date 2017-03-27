@@ -87,7 +87,7 @@ function administerusersbyrole_entity_field_access($operation, FieldDefinitionIn
     return AccessResult::neutral();
   }
 
-  $fields = array('name', 'status');
+  $fields = array('name', 'status', 'mail');
   if ($operation == 'view') {
     array_push($fields, 'roles', 'access');
   }
