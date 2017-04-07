@@ -86,7 +86,6 @@ function administerusersbyrole_hack_form_user_cancel_form_alter(&$form, &$form_s
  * RegisterForm::form and ProfileForm::form.
  */
 function _administerusersbyrole_account_form_alter(&$form, $user, $account) {
-  $form['account']['mail']['#required'] = $user->getEmail();
   $form['account']['name']['#access'] = TRUE;
   $form['account']['status']['#default_value'] = $user->get('status')->value;
   $form['account']['status']['#access'] = TRUE;
