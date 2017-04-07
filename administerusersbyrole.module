@@ -162,8 +162,21 @@ function administerusersbyrole_form_user_form_alter(&$form, &$form_state) {
   $account = Drupal::currentUser();
 
   if (!$account->hasPermission('administer users') && administerusersbyrole_user_access($user, 'delete', $account)->isAllowed()) {
-    // Correction for ProfileForm::actions.
     $form['actions']['delete']['#access'] = TRUE;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Enable cancel delete if required.
+ */
+function administerusersbyrole_form_user_cancel_form_alter(&$form, &$form_state) {
+  $user = $form_state->getFormObject()->getEntity();
+  $account = Drupal::currentUser();
+
+  if (!$account->hasPermission('administer users') && administerusersbyrole_user_access($user, 'delete', $account)->isAllowed()) {
+    $form['user_cancel_method']['user_cancel_delete']['#access'] = TRUE;
   }
 }
 

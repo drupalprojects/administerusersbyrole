@@ -26,7 +26,7 @@ function administerusersbyrole_hack_form_user_register_form_alter(&$form, &$form
     );
     $form['account']['pass']['#attributes']['autocomplete'] = 'off';
     $form['account']['notify']['#access'] = TRUE;
-    _administerusersbyrole_account_form_alter($form, $user, $account);
+    _administerusersbyrole_hack_account_form_alter($form, $user, $account);
   }
 }
 
@@ -42,12 +42,7 @@ function administerusersbyrole_hack_form_user_form_alter(&$form, &$form_state) {
 
   if (!$account->hasPermission('administer users')) {
     if (administerusersbyrole_user_access($user, 'update', $account)->isAllowed()) {
-      _administerusersbyrole_account_form_alter($form, $user, $account);
-    }
-
-    if (administerusersbyrole_user_access($user, 'delete', $account)->isAllowed()) {
-      // Correction for ProfileForm::actions.
-      $form['actions']['delete']['#access'] = TRUE;
+      _administerusersbyrole_hack_account_form_alter($form, $user, $account);
     }
   }
 }
@@ -75,9 +70,6 @@ function administerusersbyrole_hack_form_user_cancel_form_alter(&$form, &$form_s
 
     // Correction for UserCancelForm::getDescription.
     $form['description']['#markup'] = t('Select the method to cancel the account above.') . ' ' . t('This action cannot be undone.');
-
-    // Correction for user_cancel_methods.
-    $form['user_cancel_method']['user_cancel_delete']['#access'] = TRUE;
   }
 }
 
@@ -85,7 +77,7 @@ function administerusersbyrole_hack_form_user_cancel_form_alter(&$form, &$form_s
  * Corrections for AccountForm::form, which is the shared parent of
  * RegisterForm::form and ProfileForm::form.
  */
-function _administerusersbyrole_account_form_alter(&$form, $user, $account) {
+function _administerusersbyrole_hack_account_form_alter(&$form, $user, $account) {
   $form['account']['name']['#access'] = TRUE;
   $form['account']['status']['#default_value'] = $user->get('status')->value;
   $form['account']['status']['#access'] = TRUE;
