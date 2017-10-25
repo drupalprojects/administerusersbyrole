@@ -186,31 +186,28 @@ function administerusersbyrole_form_user_cancel_form_alter(&$form, &$form_state)
 function administerusersbyrole_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
     case 'help.page.administerusersbyrole':
-      $output = '<h3>About</h3>';
-      $output .= "<p>Administer Users by Role llows site builders to set up fine-grained permissions for
-          allowing \"sub-admin\" users to edit and delete other users ? more specific
-          than Drupal Core's all-or-nothing 'administer users' permission. It also
-          provides and enforces a 'create users' permission. <br />";
-
-      $output .= "Manage users, role and permissions in <a href=\"!pa_url\">People Administration page</a></p>";
-      $output .= "<br><h3>New permissions</h3>";
-      $output .= "<h6>Create new users</h6>";
-      $output .= "Create users, at admin/people/create. If in the account settings (/admin/config/people/accounts) the administrator select that Visitors can register accounts but administrator approval is required, the accounts created will be as blocked account. If the administrator select that Visitors can create accounts, the accounts created will be as active";
-
-      $output .= "<h6>Edit users with no custom roles</h6>";
-      $output .= "Allows editing of any authenticated user that has no custom roles set.";
-      $output .= "<h6>Edit users with no custom roles</h6>";
-      $output .= "Allows editing of any authenticated user with the specified role.
-        To edit a user with multiple roles, the sub-admin must have permission to
-        edit ALL of those roles.  (\"Edit users with no custom roles\" is NOT needed.)";
-
-      $output .= "<h6>Edit users with {role} role</h6>";
-
-      $output .= "Allows edit accounts that have a custom role that the administrator creates <br />";
-
-      $output .= "<br><strong>The permission for cancel work exactly the same as those for edit.</strong>";
-
-      return t($output, array('!pa_url' => Url::fromRoute('entity.user.collection')));
-      break;
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Administer Users by Role allows site builders to set up fine-grained permissions for allowing "sub-admin" users to edit and delete other users - more specific than Drupal Core\'s all-or-nothing \'administer users\' permission.  It also provides and enforces a \'create users\' permission') . '</p>';
+      $output .= '<h3>' . t('Core permissions') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Administer users') . '</dt>';
+      $output .= '<dd>' . t('<em>Do not</em> set this for sub-admins.  This permission bypasses all of the permissions in "Administer Users by Role".') . '</dd>';
+      $output .= '<dt>' . t('View user profiles') . '</dt>';
+      $output .= '<dd>' . t('Your sub-admins should probably have this permission.  (Most things work without it, but for example with a View showing users, the user name will only become a link if this permission is set.)') . '</dd>';
+      $output .= '</dl>';
+      $output .= '<h3>' . t('New permissions') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Access the users overview page') . '</dt>';
+      $output .= '<dd>' . t('Grants access to <a href=":people">manage users page</a>. Only users that can be edited are shown.', [':people' => \Drupal::url('entity.user.collection')]) . '</dd>';
+      $output .= '<dt>' . t('Create new users') . '</dt>';
+      $output .= '<dd>' . t('Grants access to <a href=":create">create users</a>.', [':create' => \Drupal::url('user.admin_create')]) . '</dd>';
+      $output .= '<dt>' . t('Edit users with no custom roles') . '</dt>';
+      $output .= '<dd>' . t('Allows editing of any authenticated user that has no custom roles set.') . '</dd>';
+      $output .= '<dt>' . t('Edit users with role XXX') . '</dt>';
+      $output .= '<dd>' . t('Allows editing of any authenticated user with the specified role. To edit a user with multiple roles, the sub-admin must have permission to edit ALL of those roles. (\'Edit users with no custom roles\' is NOT needed.)') . '</dd>';
+      $output .= '</dl>';
+      $output .= '<p>' . t('The permission for cancel work exactly the same as those for edit.') . '</p>';
+      return $output;
   }
 }
