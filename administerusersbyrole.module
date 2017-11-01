@@ -116,16 +116,16 @@ function administerusersbyrole_entity_field_access($operation, FieldDefinitionIn
  * in user does not have permission to modify.
  */
 function administerusersbyrole_query_administerusersbyrole_edit_access_alter(AlterableInterface $query) {
-  $user = \Drupal::currentUser();
+  $account = \Drupal::currentUser();
   // The tag administerusersbyrole_edit_access is used to indicate that we
   // should filter out users where there isn't edit access.
-  if (!$user->hasPermission('administer users')) {
+  if (!$account->hasPermission('administer users')) {
     // Exclude the root user.
     $query->condition('users_field_data.uid', 1, '<>');
 
     $roles = user_roles(TRUE);
     foreach ($roles as $rid => $role) {
-      if (!$user->hasPermission(_administerusersbyrole_build_perm_string($rid, 'edit'))) {
+      if (!$account->hasPermission(_administerusersbyrole_build_perm_string($rid, 'edit'))) {
         $exclude[$rid] = $rid;
       }
     }
