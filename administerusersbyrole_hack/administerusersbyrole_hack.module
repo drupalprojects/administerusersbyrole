@@ -44,6 +44,11 @@ function administerusersbyrole_hack_form_user_form_alter(&$form, &$form_state) {
     if (administerusersbyrole_user_access($user, 'update', $account)->isAllowed()) {
       _administerusersbyrole_hack_account_form_alter($form, $user, $account);
     }
+
+    // Enable cancel button if required.
+    if (administerusersbyrole_user_access($user, 'delete', $account)->isAllowed()) {
+      $form['actions']['delete']['#access'] = TRUE;
+    }
   }
 }
 

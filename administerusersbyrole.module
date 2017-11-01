@@ -21,14 +21,14 @@ function _administerusersbyrole_build_perm_string($role_id, $op = 'edit') {
 /**
  * Implements hook_ENTITY_TYPE_access() for entity type "user_role".
  *
- * @param \Drupal\User\RoleInterface $user
+ * @param \Drupal\User\RoleInterface $role
  *   The role object to check access for.
  *
  * @param string $operation: The operation that is to be performed on $entity.
  *
  * @param \Drupal\Core\Session\AccountInterface $account: The account trying to access the entity.
  */
-function administerusersbyrole_user_role_access(RoleInterface $entity, $operation, AccountInterface $account) {
+function administerusersbyrole_user_role_access(RoleInterface $role, $operation, AccountInterface $account) {
   // Allow users without the permission "administer permissions" to view the
   // role names in the /admin/people view.
   if ($operation == 'view') {
@@ -97,9 +97,12 @@ function administerusersbyrole_entity_field_access($operation, FieldDefinitionIn
   }
 
   if (is_null($items)) {
-    // No field item list is passed.  This can be used to control whether to hide/show the whole column in views.
-    // Hence allow if 'access users overview'.
-    return AccessResult::allowedIfHasPermission($account, 'access users overview');
+    if ($operation == 'view') {
+      // No field item list is passed.  This can be used to control whether to hide/show the whole column in views.
+      // Hence allow if 'access users overview'.
+      return AccessResult::allowedIfHasPermission($account, 'access users overview');
+    }
+    return AccessResult::neutral();
   }
   else {
     return administerusersbyrole_user_access($items->getEntity(), 'update', $account);
@@ -149,20 +152,6 @@ function administerusersbyrole_query_administerusersbyrole_edit_access_alter(Alt
       // Exclude those uids from the result list.
       $query->condition('users_field_data.uid', $subquery, 'NOT IN');
     }
-  }
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- *
- * Enable cancel button if required.
- */
-function administerusersbyrole_form_user_form_alter(&$form, &$form_state) {
-  $user = $form_state->getFormObject()->getEntity();
-  $account = Drupal::currentUser();
-
-  if (!$account->hasPermission('administer users') && administerusersbyrole_user_access($user, 'delete', $account)->isAllowed()) {
-    $form['actions']['delete']['#access'] = TRUE;
   }
 }
 
