@@ -1,6 +1,24 @@
 <?php
 
 /**
+ * Implements hook_entity_field_access_alter().
+ */
+function administerusersbyrole_hack_entity_field_access_alter(array &$grants, array $context) {
+  if ($context['field_definition']->getTargetEntityTypeId() != 'user') {
+    return;
+  }
+
+  // Override the :default AccessResult if we allow the field to be shown in
+  // the hook administerusersbyrole_entity_field_access().
+  if (isset($grants['administerusersbyrole'])
+    && $grants[':default']->isForbidden()
+    && $grants['administerusersbyrole']->isAllowed()) {
+
+    $grants[':default'] = clone $grants['administerusersbyrole'];
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  *
  * Tediously the user module uses hard-coded permission names.
