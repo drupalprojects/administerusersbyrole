@@ -4,7 +4,7 @@ namespace Drupal\administerusersbyrole\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\administerusersbyrole\AccessManager\AccessManagerBase;
+use Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManager\AccessManagerBase;
 
 /**
  * Configure AlbanyWeb settings for this site.
@@ -32,21 +32,29 @@ class SettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('administerusersbyrole.settings');
+    $plugins = \Drupal::service('plugin.manager.administerusersbyrole')->getAll();
 
+    $options = array_map(function($plugin) { return $plugin->getLabel(); }, $plugins);
     $form['mode'] = [
       '#type' => 'select',
-      '#title' => 'Configuration mode',
-      '#options' => ['simple' => $this->t('Simple'), 'complex' => $this->t('Complex')],
+      '#title' => $this->t('Configuration mode'),
+      '#options' => $options,
       '#default_value' => $config->get('mode'),
-      '#description' => 'Select mode for configuring access.',
+      '#description' => $this->t('Select mode for configuring access.'),
     ];
 
-    $form['manager'] = [
-      '#type' => 'fieldset',
-      '#title' => 'Mode options',
-    ];
+    foreach ($plugins as $id => $plugin) {
+      $form[$id] = [
+        '#type' => 'fieldset',
+        '#title' => $this->t('%mode options', ['%mode' => $plugin->getLabel()]),
+        '#states' => [
+          'visible' => [':input[name="mode"]' => ['value' => $id]]
+        ],
+      ];
 
-    $form['manager'] += AccessManagerBase::get()->form();
+      $form[$id] += $plugin->form();
+    }
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -55,15 +63,13 @@ class SettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('administerusersbyrole.settings');
+    $plugins = \Drupal::service('plugin.manager.administerusersbyrole')->getAll();
+    $values = $form_state->getValues();
 
-    // Remove button and internal Form API values from submitted values.
-    $values = $form_state->cleanValues()->getValues();
-    $values['roles'] = array_filter($values['roles']);
-
-    // Write variables.
-    foreach ($values as $key => $value) {
-      $config->set($key, $value);
+    foreach ($plugins as $id => $plugin) {
+      $plugin->formSave($config, $values);
     }
+    $config->set('mode', $values['mode']);
     $config->save();
 
     parent::submitForm($form, $form_state);

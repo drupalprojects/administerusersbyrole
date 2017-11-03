@@ -1,14 +1,20 @@
 <?php
 
-namespace Drupal\administerusersbyrole\AccessManager;
+namespace Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManager;
 
-use Drupal\administerusersbyrole\AccessManager\AccessManagerBase;
+use Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManager\AccessManagerBase;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Config\Config;
 use Drupal\Component\Utility\Html;
 
 /**
- * Defines a common interface for access managers.
+ * Simple access manager based on a configured set of safe roles.
+ *
+ * @AccessManager(
+ *   id = "simple",
+ *   label = @Translation("Simple"),
+ * )
  */
 class AccessManagerSimple extends AccessManagerBase {
 
@@ -33,8 +39,8 @@ class AccessManagerSimple extends AccessManagerBase {
       return [];
     }
 
-    $result = $this->config->get('roles');
-    if ($this->config->get('include_exclude') == 'exclude') {
+    $result = $this->config['roles'];
+    if ($this->config['include_exclude'] == 'exclude') {
       $result = array_diff($this->allRoles(), $result);
     }
     else {
@@ -55,18 +61,26 @@ class AccessManagerSimple extends AccessManagerBase {
         'exclude' => $this->t('All actions, except selected'),
         'include' => $this->t('Only selected actions'),
       ],
-      '#default_value' => $this->config->get('include_exclude'),
+      '#default_value' => $this->config['include_exclude'],
     ];
 
     $options = array_map(function ($item) { return Html::escape($item->label()); }, $this->allRoles(TRUE));
     $form['roles'] = [
       '#type' => 'checkboxes',
       '#title' => $this->t('Roles'),
-      '#default_value' => $this->config->get('roles') ?: [],
+      '#default_value' => $this->config['roles'] ?: [],
       '#options' => $options,
     ];
 
     return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function formSave(Config $config, array $values) {
+    $config->set('simple.include_exclude', $values['include_exclude']);
+    $config->set('simple.roles', array_filter($values['roles']));
   }
 
 }

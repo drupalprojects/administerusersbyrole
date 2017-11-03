@@ -1,13 +1,14 @@
 <?php
 
-namespace Drupal\administerusersbyrole\AccessManager;
+namespace Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManager;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\administerusersbyrole\AccessManager\AccessManagerInterface;
+use Drupal\Core\Config\Config;
+use Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManager\AccessManagerInterface;
 
 /**
- * Defines a common interface for all entity objects.
+ * Base class for Access Manager plug-ins.
  *
  * @ingroup entity_api
  */
@@ -15,10 +16,9 @@ abstract class AccessManagerBase implements AccessManagerInterface {
 
   use StringTranslationTrait;
 
-  /* @var \Drupal\administerusersbyrole\AccessManagerInterface $manager */
-  private static $manager;
-
   protected $config;
+  protected $id;
+  protected $label;
 
   const CONVERT_OP = [
     'cancel' => 'cancel',
@@ -29,40 +29,33 @@ abstract class AccessManagerBase implements AccessManagerInterface {
     'role-assign' => 'role-assign',
   ];
 
-  protected $op_names;
-
-  public static function get() {
-    if (!self::$manager) {
-      $config = \Drupal::config('administerusersbyrole.settings');
-      $mode = $config->get('mode');
-
-      if ($mode == 'complex') self::$manager = new AccessManagerComplex();
-      else self::$manager = new AccessManagerSimple();
-    }
-    return self::$manager;
+  function __construct ($config, $id, $definition) {
+    $this->config = $config;
+    $this->id = $id;
+    $this->label = $definition['label'];
   }
 
-  function __construct () {
-    $this->config = \Drupal::config('administerusersbyrole.settings');
-
-    $this->op_names = [
-      'edit' => $this->t('Edit'),
-      'cancel' => $this->t('Cancel'),
-      'view' => $this->t('View'),
-      'role-assign' => $this->t('Assign roles to'),
-    ];
+  /**
+   * {@inheritdoc}
+   */
+  public function getLabel() {
+    return $this->label;
   }
 
   /**
    * {@inheritdoc}
    */
   public function permissions() {
-    foreach ($this->op_names as $op => $name) {
+    $op_titles = [
+      'edit' => $this->t('Edit users by role'),
+      'cancel' => $this->t('Cancel users by role'),
+      'view' => $this->t('View users by role'),
+      'role-assign' => $this->t('Assign roles by role'),
+    ];
+
+    foreach ($op_titles as $op => $title) {
       $perm_string = $this->buildPermString($op);
-      $perm_title = $this->t("@operation users by role", [
-        '@operation' => $name,
-      ]);
-      $perms[$perm_string] = ['title' => $perm_title];
+      $perms[$perm_string] = ['title' => $title];
     }
     return $perms;
   }
@@ -72,6 +65,12 @@ abstract class AccessManagerBase implements AccessManagerInterface {
    */
   public function form() {
     return [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function formSave(Config $config, array $values) {
   }
 
   /**

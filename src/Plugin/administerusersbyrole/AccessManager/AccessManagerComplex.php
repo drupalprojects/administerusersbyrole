@@ -1,15 +1,18 @@
 <?php
 
-namespace Drupal\administerusersbyrole\AccessManager;
+namespace Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManager;
 
-use Drupal\administerusersbyrole\AccessManager\AccessManagerBase;
+use Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManager\AccessManagerBase;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Access\AccessResult;
 
 /**
- * Defines a common interface for all entity objects.
+ * Complex access manager based on permissions for each role.
  *
- * @ingroup entity_api
+ * @AccessManager(
+ *   id = "complex",
+ *   label = @Translation("Complex"),
+ * )
  */
 class AccessManagerComplex extends AccessManagerBase {
 
@@ -50,13 +53,16 @@ class AccessManagerComplex extends AccessManagerBase {
     $perms = parent::permissions();
 
     foreach ($this->allRoles(TRUE) as $rid => $role) {
-      foreach ($this->op_names as $op => $name) {
+      $op_titles = [
+        'edit' => $this->t('Edit users with role %role', ['%role' => $role->label()]),
+        'cancel' => $this->t('Cancel users with role %role', ['%role' => $role->label()]),
+        'view' => $this->t('View users with role %role', ['%role' => $role->label()]),
+        'role-assign' => $this->t('Assign role %role', ['%role' => $role->label()]),
+      ];
+
+      foreach ($op_titles as $op => $title) {
         $perm_string = $this->buildPermString($op, $rid);
-        $perm_title = $this->t("@operation users with role %role", [
-          '@operation' => $name,
-          '%role' => $role->label(),
-        ]);
-        $perms[$perm_string] = ['title' => $perm_title];
+        $perms[$perm_string] = ['title' => $title];
       }
     }
 

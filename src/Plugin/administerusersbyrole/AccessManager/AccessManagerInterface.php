@@ -1,15 +1,19 @@
 <?php
 
-namespace Drupal\administerusersbyrole\AccessManager;
+namespace Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManager;
 
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Config\Config;
 
 /**
- * Defines a common interface for all entity objects.
- *
- * @ingroup entity_api
+ * Defines a common interface for access managers.
  */
 interface AccessManagerInterface {
+
+  /**
+   * Return the plug-in label.
+   */
+  public function getLabel();
 
   /**
    * Check access for the specified roles.
@@ -49,5 +53,14 @@ interface AccessManagerInterface {
    * @return form array.
    */
   public function form();
+
+  /**
+   * Save form values to config.
+   *
+   * @param \Drupal\Core\Config\Config $config: Config object to save to
+   *
+   * @param array $value: Form values
+   */
+  public function formSave(Config $config, array $values);
 
 }
