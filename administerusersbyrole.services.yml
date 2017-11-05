@@ -6,3 +6,4 @@ services:
   plugin.manager.administerusersbyrole:
     class: Drupal\administerusersbyrole\AccessManagerManager
     parent: default_plugin_manager
+    arguments: ['@config.factory']

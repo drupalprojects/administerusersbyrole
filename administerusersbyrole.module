@@ -1,7 +1,5 @@
 <?php
 
-// @@ Requires patch to user.module
-
 use Drupal\Core\Url;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Access\AccessResult;
@@ -58,10 +56,8 @@ function administerusersbyrole_user_access(UserInterface $user, $operation, Acco
     $roles = array_unique(array_merge($roles, $extra_roles));
   }
 
-  $return = \Drupal::service('plugin.manager.administerusersbyrole')->get()->access($roles, $operation, $account);
-ksm($user->getAccountName(), $operation, $return);
-return $return;
-  //@@ Everywhere contexts such as : ->cachePerPermissions()->addCacheableDependency($user)
+  $result = \Drupal::service('plugin.manager.administerusersbyrole')->get()->access($roles, $operation, $account);
+  return $result->cachePerPermissions()->addCacheableDependency($user);
 }
 
 /**
@@ -172,13 +168,21 @@ function administerusersbyrole_help($route_name, RouteMatchInterface $route_matc
     case 'help.page.administerusersbyrole':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('Administer Users by Role allows site builders to set up fine-grained permissions for allowing "sub-admin" users to edit and delete other users - more specific than Drupal Core\'s all-or-nothing \'administer users\' permission.  It also provides and enforces a \'create users\' permission') . '</p>';
+      $output .= '<p>' . t('Administer Users by Role allows site builders to set up fine-grained permissions for allowing "sub-admin" users to manage other users based on the target user\'s role.');
+      $output .= t('The module defines new permissions to control access to edit/delete users and assign roles - more specific than Drupal Core\'s all-or-nothing \'administer users\' and \'administer permissions\'.');
+      $output .= t('It also provides a \'create users\' permission and fine-grained permissions for viewing users.') . '</p>';
+      $output .= '<h3>' . t('Configuration') . '</h3>';
+      $output .= '<p>' . t('The module supports two modes, depending on <a href=":config">configuration settings</a>.', [':config' => \Drupal::url('administerusersbyrole.settings')]) . '</p>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('In the default <em>simple</em> mode the admin defines a set of \'safe roles\'.  There is one permission for each operation - view/edit/cancel/assign role - which allows access if the target user\'s roles are all in the set of safe roles.') . '</li>';
+      $output .= '<li>' . t('In the <em>complex</em> mode, there is a permission for each operation for each role.  Access for an operation is granted only if the sub-admin has the base permission for the operation plus permission for every role of the target user.') . '</li>';
+      $output .= '</ul>';
       $output .= '<h3>' . t('Core permissions') . '</h3>';
       $output .= '<dl>';
-      $output .= '<dt>' . t('Administer users') . '</dt>';
-      $output .= '<dd>' . t('<em>Do not</em> set this for sub-admins.  This permission bypasses all of the permissions in "Administer Users by Role".') . '</dd>';
+      $output .= '<dt>' . t('Administer users') . '/' . t('Administer permissions') . '</dt>';
+      $output .= '<dd>' . t('<em>Do not</em> set these for sub-admins.  These permissions bypass all of the permissions in "Administer Users by Role".') . '</dd>';
       $output .= '<dt>' . t('View user profiles') . '</dt>';
-      $output .= '<dd>' . t('Your sub-admins should probably have this permission.  (Most things work without it, but for example with a View showing users, the user name will only become a link if this permission is set.)') . '</dd>';
+      $output .= '<dd>' . t('Don\'t set this if you wish to use the fine-grained permissions for viewing users.') . '</dd>';
       $output .= '</dl>';
       $output .= '<h3>' . t('New permissions') . '</h3>';
       $output .= '<dl>';
@@ -186,12 +190,15 @@ function administerusersbyrole_help($route_name, RouteMatchInterface $route_matc
       $output .= '<dd>' . t('Grants access to <a href=":people">manage users page</a>. Only users that can be edited are shown.', [':people' => \Drupal::url('entity.user.collection')]) . '</dd>';
       $output .= '<dt>' . t('Create new users') . '</dt>';
       $output .= '<dd>' . t('Grants access to <a href=":create">create users</a>.', [':create' => \Drupal::url('user.admin_create')]) . '</dd>';
-      $output .= '<dt>' . t('Edit users with no custom roles') . '</dt>';
-      $output .= '<dd>' . t('Allows editing of any authenticated user that has no custom roles set.') . '</dd>';
-      $output .= '<dt>' . t('Edit users with role XXX') . '</dt>';
-      $output .= '<dd>' . t('Allows editing of any authenticated user with the specified role. To edit a user with multiple roles, the sub-admin must have permission to edit ALL of those roles. (\'Edit users with no custom roles\' is NOT needed.)') . '</dd>';
+      $output .= '<dt>' . t('Assign roles by role') . '</dt>';
+      $output .= '<dd>' . t('Allows assigning of roles.  The set of roles than can be assigned is controlled by configuration.') . '</dd>';
+      $output .= '<dt>' . t('Edit users by role') . '</dt>';
+      $output .= '<dd>' . t('Allows editing of any user that has no roles set.  Editing of users with roles depends on configuration.') . '</dd>';
+      $output .= '<dt>' . t('Cancel users by role') . '</dt>';
+      $output .= '<dd>' . t('Allows cancelling of any user that has no roles set.  Cancelling of users with roles depends on configuration.') . '</dd>';
+      $output .= '<dt>' . t('View users by role') . '</dt>';
+      $output .= '<dd>' . t('Allows viewing of any user that has no roles set.  Viewing of users with roles depends on configuration.  Note that this permission only controls direct viewing of a single user, it does not affect Views.') . '</dd>';
       $output .= '</dl>';
-      $output .= '<p>' . t('The permission for cancel work exactly the same as those for edit.') . '</p>';
       return $output;
   }
 }

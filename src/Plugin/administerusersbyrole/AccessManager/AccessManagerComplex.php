@@ -12,6 +12,8 @@ use Drupal\Core\Access\AccessResult;
  * @AccessManager(
  *   id = "complex",
  *   label = @Translation("Complex"),
+ *   description = @Translation("Complex configuration based on permissions to indicate allowed roles."),
+ *   help = @Translation("Configure access by settings permissions.  There is a permission for each operation (view/update/cancel/assign role) for each role.  Access for an operation is granted only if the sub-admin has the base permission for the operation plus permission for every role of the target user. "),
  * )
  */
 class AccessManagerComplex extends AccessManagerBase {

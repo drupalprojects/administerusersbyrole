@@ -34,19 +34,22 @@ class SettingsForm extends ConfigFormBase {
     $config = $this->config('administerusersbyrole.settings');
     $plugins = \Drupal::service('plugin.manager.administerusersbyrole')->getAll();
 
-    $options = array_map(function($plugin) { return $plugin->getLabel(); }, $plugins);
     $form['mode'] = [
-      '#type' => 'select',
+      '#type' => 'radios',
       '#title' => $this->t('Configuration mode'),
-      '#options' => $options,
       '#default_value' => $config->get('mode'),
       '#description' => $this->t('Select mode for configuring access.'),
     ];
 
     foreach ($plugins as $id => $plugin) {
+      $form['mode']['#options'][$id] = $plugin->getLabel();
+      $form['mode'][$id]['#description'] = $plugin->getDescription();
+
       $form[$id] = [
-        '#type' => 'fieldset',
+        '#type' => 'details',
+        '#open' => TRUE,
         '#title' => $this->t('%mode options', ['%mode' => $plugin->getLabel()]),
+        '#description' => $plugin->getHelp(),
         '#states' => [
           'visible' => [':input[name="mode"]' => ['value' => $id]]
         ],

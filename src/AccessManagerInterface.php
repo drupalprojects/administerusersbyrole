@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManager;
+namespace Drupal\administerusersbyrole;
 
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Config\Config;
@@ -14,6 +14,16 @@ interface AccessManagerInterface {
    * Return the plug-in label.
    */
   public function getLabel();
+
+  /**
+   * Return the plug-in description.
+   */
+  public function getDescription();
+
+  /**
+   * Return the plug-in help text.
+   */
+  public function getHelp();
 
   /**
    * Check access for the specified roles.

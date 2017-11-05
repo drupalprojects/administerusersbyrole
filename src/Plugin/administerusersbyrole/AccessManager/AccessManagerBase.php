@@ -5,7 +5,7 @@ namespace Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManage
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Config\Config;
-use Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManager\AccessManagerInterface;
+use Drupal\administerusersbyrole\AccessManagerInterface;
 
 /**
  * Base class for Access Manager plug-ins.
@@ -18,7 +18,7 @@ abstract class AccessManagerBase implements AccessManagerInterface {
 
   protected $config;
   protected $id;
-  protected $label;
+  protected $definition;
 
   const CONVERT_OP = [
     'cancel' => 'cancel',
@@ -29,17 +29,31 @@ abstract class AccessManagerBase implements AccessManagerInterface {
     'role-assign' => 'role-assign',
   ];
 
-  function __construct ($config, $id, $definition) {
+  function __construct($config, $id, $definition) {
     $this->config = $config;
     $this->id = $id;
-    $this->label = $definition['label'];
+    $this->definition = $definition;
   }
 
   /**
    * {@inheritdoc}
    */
   public function getLabel() {
-    return $this->label;
+    return $this->definition['label'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDescription() {
+    return $this->definition['description'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getHelp() {
+    return $this->definition['help'];
   }
 
   /**

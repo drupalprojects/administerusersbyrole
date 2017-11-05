@@ -14,6 +14,8 @@ use Drupal\Component\Utility\Html;
  * @AccessManager(
  *   id = "simple",
  *   label = @Translation("Simple"),
+ *   description = @Translation("Simple configuration based on a set of safe roles defined on this page."),
+ *   help = @Translation("Configure the set of safe roles below.  Access for an operation is granted only if the sub-admin has the base permission for the operation and if the target user's roles are all in the set of safe roles."),
  * )
  */
 class AccessManagerSimple extends AccessManagerBase {
@@ -58,8 +60,8 @@ class AccessManagerSimple extends AccessManagerBase {
       '#type' => 'radios',
       '#title' => $this->t('Available roles'),
       '#options' => [
-        'exclude' => $this->t('All actions, except selected'),
-        'include' => $this->t('Only selected actions'),
+        'include' => $this->t('Selected roles'),
+        'exclude' => $this->t('All roles except selected'),
       ],
       '#default_value' => $this->config['include_exclude'],
     ];

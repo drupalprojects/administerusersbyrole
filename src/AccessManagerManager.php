@@ -4,6 +4,7 @@ namespace Drupal\administerusersbyrole;
 
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Component\Plugin\Factory\DefaultFactory;
 use Drupal\administerusersbyrole\AccessManagerManagerInterface;
@@ -16,7 +17,10 @@ use Drupal\administerusersbyrole\AccessManagerManagerInterface;
 class AccessManagerManager extends DefaultPluginManager implements AccessManagerManagerInterface {
 
   /* @var \Drupal\administerusersbyrole\Plugin\administerusersbyrole\AccessManagerInterface $manager */
-  private $manager;
+  protected $manager;
+
+  /* @var \Drupal\Core\Config\ImmutableConfig */
+  protected $config;
 
   /**
    * Constructs an AccessManagerManager object.
@@ -29,7 +33,7 @@ class AccessManagerManager extends DefaultPluginManager implements AccessManager
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler to invoke the alter hook with.
    */
-  public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
+  public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, ConfigFactoryInterface $config_factory) {
     parent::__construct(
       'Plugin/administerusersbyrole/AccessManager',
       $namespaces,
@@ -39,26 +43,23 @@ class AccessManagerManager extends DefaultPluginManager implements AccessManager
     );
     $this->alterInfo('administerusersbyrole_access_manager');
     $this->setCacheBackend($cache_backend, 'administerusersbyrole_access_manager');
-    $this->factory = new DefaultFactory($this->getDiscovery());
+    $this->config = $config_factory->get('administerusersbyrole.settings');
   }
 
   public function get() {
     if (!isset($this->manager)) {
-      $config = \Drupal::config('administerusersbyrole.settings'); //@@ use injection
-      $mode = $config->get('mode');
-      $instance_config = $config->get($mode) ?: [];
-      //@@ Config defaults
+      $mode = $this->config->get('mode');
+      $instance_config = $this->config->get($mode) ?: [];
       $this->manager = $this->createInstance($mode, $instance_config);
     }
     return $this->manager;
   }
 
   public function getAll() {
-    $config = \Drupal::config('administerusersbyrole.settings'); //@@ use injection
     $plugins = [];
 
     foreach ($this->getDefinitions() as $id => $plugin) {
-      $instance_config = $config->get($id) ?: [];
+      $instance_config = $this->config->get($id) ?: [];
       $plugins[$id] = $this->createInstance($id, $instance_config);
     }
     return $plugins;
