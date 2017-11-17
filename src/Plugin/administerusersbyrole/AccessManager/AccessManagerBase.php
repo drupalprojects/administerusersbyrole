@@ -105,7 +105,7 @@ abstract class AccessManagerBase implements AccessManagerInterface {
     }
 
     // Ignore unrecognised operation.
-    if (!isset(self::CONVERT_OP[$operation])) {
+    if (!array_key_exists($operation, self::CONVERT_OP)) {
       return FALSE;
     }
 
