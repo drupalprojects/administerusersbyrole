@@ -50,7 +50,7 @@ function administerusersbyrole_user_role_access(RoleInterface $role, $operation,
  */
 function administerusersbyrole_user_access(UserInterface $user, $operation, AccountInterface $account) {
   // Never allow uid 0 (anonymous) or 1 (master admin).
-  if ($user->id() <= 1) {
+  if (!$user->isNew() && ($user->id() <= 1)) {
     return AccessResult::neutral();
   }
 
@@ -80,6 +80,17 @@ function administerusersbyrole_user_access(UserInterface $user, $operation, Acco
 }
 
 /**
+ * Implements hook_entity_create_access().
+ */
+function administerusersbyrole_entity_create_access(AccountInterface $account, array $context, $entity_bundle) {
+  if ($context['entity_type_id'] != 'user') {
+    return AccessResult::neutral();
+  }
+
+  return AccessResult::allowedIfHasPermission($account, 'create users');
+}
+
+/**
  * Implements hook_entity_field_access().
  */
 function administerusersbyrole_entity_field_access($operation, FieldDefinitionInterface $field_definition, AccountInterface $account, FieldItemList $items = NULL) {
@@ -104,9 +115,8 @@ function administerusersbyrole_entity_field_access($operation, FieldDefinitionIn
     }
     return AccessResult::neutral();
   }
-  else {
-    return administerusersbyrole_user_access($items->getEntity(), 'update', $account);
-  }
+
+  return administerusersbyrole_user_access($items->getEntity(), 'update', $account);
 }
 
 /**
@@ -164,7 +174,7 @@ function administerusersbyrole_form_user_cancel_form_alter(&$form, &$form_state)
   $user = $form_state->getFormObject()->getEntity();
   $account = Drupal::currentUser();
 
-  if (!$account->hasPermission('administer users') && administerusersbyrole_user_access($user, 'delete', $account)->isAllowed()) {
+  if (administerusersbyrole_user_access($user, 'delete', $account)->isAllowed()) {
     $form['user_cancel_method']['user_cancel_delete']['#access'] = TRUE;
   }
 }

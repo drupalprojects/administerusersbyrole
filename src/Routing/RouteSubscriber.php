@@ -21,11 +21,13 @@ class RouteSubscriber extends RouteSubscriberBase {
       $route->setRequirement('_permission', $perm);
     }
 
+    // @todo: Remove depending on outcome of https://www.drupal.org/project/drupal/issues/2854252
     if ($route = $collection->get('user.multiple_cancel_confirm')) {
       $perm = $route->getRequirement('_permission') . '+access users overview';
       $route->setRequirement('_permission', $perm);
     }
 
+    // @todo: Remove after https://www.drupal.org/project/drupal/issues/2921365
     if ($route = $collection->get('user.admin_create')) {
       $perm = $route->getRequirement('_permission') . '+create users';
       $route->setRequirement('_permission', $perm);
