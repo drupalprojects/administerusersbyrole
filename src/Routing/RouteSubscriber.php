@@ -27,10 +27,10 @@ class RouteSubscriber extends RouteSubscriberBase {
       $route->setRequirement('_permission', $perm);
     }
 
-    // @todo: Remove after https://www.drupal.org/project/drupal/issues/2921365
-    if ($route = $collection->get('user.admin_create')) {
-      $perm = $route->getRequirement('_permission') . '+create users';
-      $route->setRequirement('_permission', $perm);
-    }
+    // @todo: Currently in patch for https://www.drupal.org/project/drupal/issues/2854252
+    //if ($route = $collection->get('user.admin_create')) {
+    //  $perm = $route->getRequirement('_permission') . '+create users';
+    //  $route->setRequirement('_permission', $perm);
+    //}
   }
 }
