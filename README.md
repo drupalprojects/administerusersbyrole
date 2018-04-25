@@ -17,6 +17,11 @@ Your sub-admins should probably have this permission.  (Most things work
 without it, but for example with a View showing users, the user name
 will only become a link if this permission is set.)
 
+### Select method for cancelling account
+If you set this for sub-admins, then the sub-admin can choose a cancellation
+method when cancelling an account.  If not, then the sum-admin will always
+use the default cancellation method.
+
 ## NEW PERMISSIONS
 
 ### Access the users overview page
@@ -24,10 +29,10 @@ See the list of users at admin/people.  Only users that can be edited are shown.
 
 ### Create new users
 Create users, at admin/people/create.
-  
+
 ### Edit users with no custom roles
 Allows editing of any authenticated user that has no custom roles set.
-  
+
 ### Edit users with role XXX
 Allows editing of any authenticated user with the specified role.
 To edit a user with multiple roles, the sub-admin must have permission to

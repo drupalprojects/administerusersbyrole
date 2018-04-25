@@ -194,6 +194,8 @@ function administerusersbyrole_help($route_name, RouteMatchInterface $route_matc
       $output .= '<dd>' . t('<em>Do not</em> set this for sub-admins.  This permission bypasses all of the permissions in "Administer Users by Role".') . '</dd>';
       $output .= '<dt>' . t('View user profiles') . '</dt>';
       $output .= '<dd>' . t('Your sub-admins should probably have this permission.  (Most things work without it, but for example with a View showing users, the user name will only become a link if this permission is set.)') . '</dd>';
+      $output .= '<dt>' . t('Select method for cancelling account') . '</dt>';
+      $output .= '<dd>' . t('If you set this for sub-admins, then the sub-admin can choose a cancellation method when cancelling an account.  If not, then the sum-admin will always use the default cancellation method.') . '</dd>';
       $output .= '</dl>';
       $output .= '<h3>' . t('New permissions') . '</h3>';
       $output .= '<dl>';
