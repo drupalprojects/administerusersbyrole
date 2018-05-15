@@ -30,6 +30,9 @@ See the list of users at admin/people.  Only users that can be edited are shown.
 ### Create new users
 Create users, at admin/people/create.
 
+### Allow empty user mail when managing users
+Create and manage users that have no email address.
+
 ### Edit users with no custom roles
 Allows editing of any authenticated user that has no custom roles set.
 

@@ -120,6 +120,15 @@ function administerusersbyrole_entity_field_access($operation, FieldDefinitionIn
 }
 
 /**
+ * Implements hook_user_mail_required_alter()
+ */
+function administerusersbyrole_user_mail_required_alter(&$required, AccountInterface $user) {
+  if ($user->hasPermission('allow empty user mail')) {
+    $required = FALSE;
+  }
+}
+
+/**
  * Implements hook_query_TAG_alter().
  *
  * Modifies the user listing results to exclude user accounts that the logged
@@ -203,6 +212,8 @@ function administerusersbyrole_help($route_name, RouteMatchInterface $route_matc
       $output .= '<dd>' . t('Grants access to <a href=":people">manage users page</a>. Only users that can be edited are shown.', [':people' => \Drupal::url('entity.user.collection')]) . '</dd>';
       $output .= '<dt>' . t('Create new users') . '</dt>';
       $output .= '<dd>' . t('Grants access to <a href=":create">create users</a>.', [':create' => \Drupal::url('user.admin_create')]) . '</dd>';
+      $output .= '<dt>' . t('Allow empty user mail when managing users') . '</dt>';
+      $output .= '<dd>' . t('Create and manage users that have no email address.') . '</dd>';
       $output .= '<dt>' . t('Edit users with no custom roles') . '</dt>';
       $output .= '<dd>' . t('Allows editing of any authenticated user that has no custom roles set.') . '</dd>';
       $output .= '<dt>' . t('Edit users with role XXX') . '</dt>';
